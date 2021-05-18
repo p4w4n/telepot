@@ -6,6 +6,7 @@ import threading
 import traceback
 import collections
 import bisect
+from telepot import *
 
 try:
     import Queue as queue
@@ -18,7 +19,7 @@ from . import hack
 from . import exception
 
 
-__version_info__ = (12, 7)
+__version_info__ = (12, 8)
 __version__ = '.'.join(map(str, __version_info__))
 
 
@@ -65,7 +66,7 @@ def _find_first_key(d, keys):
     for k in keys:
         if k in d:
             return k
-    raise KeyError('No suggested keys %s in %s' % (str(keys), str(d)))
+    # raise KeyError('No suggested keys %s in %s' % (str(keys), str(d)))
 
 
 all_content_types = [
@@ -73,7 +74,7 @@ all_content_types = [
     'contact', 'location', 'venue', 'new_chat_member', 'left_chat_member', 'new_chat_title',
     'new_chat_photo',  'delete_chat_photo', 'group_chat_created', 'supergroup_chat_created',
     'channel_chat_created', 'migrate_to_chat_id', 'migrate_from_chat_id', 'pinned_message',
-    'new_chat_members', 'invoice', 'successful_payment'
+    'new_chat_members', 'invoice', 'successful_payment', 'poll', 'my_chat_member'
 ]
 
 def glance(msg, flavor='chat', long=False):
@@ -1169,7 +1170,7 @@ class Bot(_BotBase):
                                            'inline_query',
                                            'chosen_inline_result',
                                            'shipping_query',
-                                           'pre_checkout_query'])
+                                           'pre_checkout_query',])
             collect_queue.put(update[key])
             return update['update_id']
 
@@ -1386,10 +1387,11 @@ class DelegatorBot(SpeakerBot):
 
     def handle(self, msg):
         self._mic.send(msg)
-
         for calculate_seed, make_delegate, dict in self._delegate_records:
-            id = calculate_seed(msg)
-
+            try:
+                id = calculate_seed(msg)
+            except:
+                id = None
             if id is None:
                 continue
             elif isinstance(id, collections.Hashable):

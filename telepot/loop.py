@@ -20,7 +20,6 @@ class RunForeverAsThread(object):
         t.daemon = True
         t.start()
 
-
 class CollectLoop(RunForeverAsThread):
     def __init__(self, handle):
         self._handle = handle
@@ -100,7 +99,8 @@ def _dictify27(data):
 _dictify = _dictify3 if sys.version_info >= (3,) else _dictify27
 
 def _extract_message(update):
-    key = _find_first_key(update, ['message',
+    key = _find_first_key(update, [
+                                   'message',
                                    'edited_message',
                                    'channel_post',
                                    'edited_channel_post',
@@ -108,8 +108,11 @@ def _extract_message(update):
                                    'inline_query',
                                    'chosen_inline_result',
                                    'shipping_query',
-                                   'pre_checkout_query'])
-    return key, update[key]
+                                   'pre_checkout_query',
+                                   'poll'])
+    if not key:
+        return key, update
+    return key, update.get(key)
 
 def _infer_handler_function(bot, h):
     if h is None:
